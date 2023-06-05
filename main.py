@@ -81,7 +81,7 @@ def update_colors(fd):
         if (dt.datetime.now().date() - unDate).days > 10:
             sheet.cell(row=row, column=unDate_col).font = Font(color="FF0000")
         elif (dt.datetime.now().date() - unDate).days == 10:
-            sheet.cell(row=row, column=unDate_col).font = Font(color="FFFF00")
+            sheet.cell(row=row, column=unDate_col).font = Font(color="00FA9A")
         else:
             sheet.cell(row=row, column=unDate_col).font = Font(color="0000FF")
 
