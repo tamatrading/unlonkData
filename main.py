@@ -8,15 +8,19 @@ from typing import Optional
 from datetime import datetime
 import pandas as pd
 from openpyxl.styles import Font, numbers
+import datetime as dt
+from datetime import datetime, date
 
-def open_or_create_file(filename: str = "unlock.xlsx") -> Workbook:
+# Specify the filepath
+filepath = "C:\\Users\\mtake\\Dropbox\\アンロックデータ\\unlock.xlsx"
+
+def open_or_create_file(filename: str = filepath) -> Workbook:
     try:
         workbook = openpyxl.load_workbook(filename)
     except FileNotFoundError:
         workbook = openpyxl.Workbook()
         workbook.create_sheet('project')
     return workbook
-
 
 def update_or_insert(fd, prj: str, unCode: str, unVal: str, unDate: str, unTime: str):
     # Skip the entire row if unVal starts with $
@@ -34,19 +38,25 @@ def update_or_insert(fd, prj: str, unCode: str, unVal: str, unDate: str, unTime:
     if unVal.endswith("%"):
         unVal = float(unVal[:-1]) / 100
 
-    # Remove leading zeroes from date and time
-    parsed_date = datetime.strptime(unDate, "%d %b %Y")
-    unDate = f"{parsed_date.year}/{parsed_date.month}/{parsed_date.day}"
-    parsed_time = datetime.strptime(unTime, "%H:%M %p")
+    # Convert string to datetime
+    unDate = datetime.strptime(unDate, "%d %b %Y").date()  # Get the date part only
 
-    # Check if the time is 0 o'clock exactly
+    parsed_time = datetime.strptime(unTime, "%H:%M %p")
     if parsed_time.hour == 0 and parsed_time.minute == 0:
         unTime = "0:00"
     else:
         unTime = parsed_time.strftime("%H:%M").lstrip("0")
 
+    # Convert unTime to timedelta
+    unTime = datetime.strptime(unTime, "%H:%M") - datetime.strptime("00:00", "%H:%M")
+
     for row in range(1, sheet.max_row + 1):
-        if sheet.cell(row=row, column=prj_col).value == prj and sheet.cell(row=row, column=unDate_col).value == unDate:
+        existing_unDate = sheet.cell(row=row, column=unDate_col).value
+        # If the unDate is of type datetime, extract only the date part
+        if isinstance(existing_unDate, datetime):
+            existing_unDate = existing_unDate.date()
+
+        if sheet.cell(row=row, column=prj_col).value == prj and existing_unDate == unDate:
             row_to_update = row
             break
 
@@ -54,14 +64,11 @@ def update_or_insert(fd, prj: str, unCode: str, unVal: str, unDate: str, unTime:
         sheet.cell(row=row_to_update, column=unCode_col).value = unCode
         sheet.cell(row=row_to_update, column=unVal_col).value = unVal
         sheet.cell(row=row_to_update, column=unDate_col).value = unDate
-        sheet.cell(row=row_to_update, column=unDate_col).number_format = numbers.FORMAT_DATE_YYYYMMDD2
         sheet.cell(row=row_to_update, column=unTime_col).value = unTime
-        sheet.cell(row=row_to_update, column=unTime_col).number_format = numbers.FORMAT_DATE_TIME4
     else:
         sheet.append([prj, unCode, unVal, unDate, unTime])
 
-    fd.save("unlock.xlsx")
-
+    fd.save(filepath)
 
 def update_colors(fd):
     sheet = fd['project']
@@ -69,12 +76,16 @@ def update_colors(fd):
 
     for row in range(2, sheet.max_row + 1):
         unDate = sheet.cell(row=row, column=unDate_col).value
-        if (datetime.now() - datetime.strptime(unDate, "%Y/%m/%d")).days > 10:
+        if isinstance(unDate, dt.datetime):
+            unDate = unDate.date()  # Convert datetime.datetime to datetime.date only if necessary
+        if (dt.datetime.now().date() - unDate).days > 10:
             sheet.cell(row=row, column=unDate_col).font = Font(color="FF0000")
+        elif (dt.datetime.now().date() - unDate).days == 10:
+            sheet.cell(row=row, column=unDate_col).font = Font(color="FFFF00")
         else:
             sheet.cell(row=row, column=unDate_col).font = Font(color="0000FF")
 
-    fd.save("unlock.xlsx")
+    fd.save(filepath)
 
 def get_project_names():
     s = Service(ChromeDriverManager().install())
