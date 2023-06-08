@@ -73,11 +73,15 @@ def update_or_insert(fd, prj: str, unCode: str, unVal: str, unDate: str, unTime:
 def update_colors(fd):
     sheet = fd['project']
     unDate_col = 4
+    unVal_col = 3
 
     for row in range(2, sheet.max_row + 1):
         unDate = sheet.cell(row=row, column=unDate_col).value
+        unVal = sheet.cell(row=row, column=unVal_col).value
         if isinstance(unDate, dt.datetime):
-            unDate = unDate.date()  # Convert datetime.datetime to datetime.date only if necessary
+            unDate = unDate.date()
+        if unVal >= 0.03:  # Check if unVal is greater or equal to 0.03
+            sheet.cell(row=row, column=unVal_col).font = Font(color="FF0000")  # If so, change the color of this cell to red
         if (dt.datetime.now().date() - unDate).days > 10:
             sheet.cell(row=row, column=unDate_col).font = Font(color="FF0000")
         elif (dt.datetime.now().date() - unDate).days == 10:
