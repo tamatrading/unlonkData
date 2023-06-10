@@ -45,7 +45,8 @@ def update_or_insert(fd, prj: str, unCode: str, unVal: str, unDate: str, unTime:
     if parsed_time.hour == 0 and parsed_time.minute == 0:
         unTime = "0:00"
     else:
-        unTime = parsed_time.strftime("%H:%M").lstrip("0")
+        unTime = parsed_time.strftime("%H:%M")
+        #unTime = parsed_time.strftime("%H:%M").lstrip("0")
 
     # Convert unTime to timedelta
     unTime = datetime.strptime(unTime, "%H:%M") - datetime.strptime("00:00", "%H:%M")
@@ -56,7 +57,7 @@ def update_or_insert(fd, prj: str, unCode: str, unVal: str, unDate: str, unTime:
         if isinstance(existing_unDate, datetime):
             existing_unDate = existing_unDate.date()
 
-        if sheet.cell(row=row, column=prj_col).value == prj and existing_unDate == unDate:
+        if sheet.cell(row=row, column=prj_col).value == prj and (unDate - existing_unDate).days < 10:
             row_to_update = row
             break
 
@@ -106,6 +107,8 @@ def get_project_names():
         unlockPer = prj.find_element(By.XPATH, 'td[7]/a/div/div/div[1]/div[2]/p[1]').text
         unlockDate = prj.find_element(By.XPATH, 'td[7]/a/div/div/div[1]/div[6]/p[1]').text
         unlockTime = prj.find_element(By.XPATH, 'td[7]/a/div/div/div[1]/div[6]/p[2]').text
+
+        print(f"{unlockName} : {unlockCode} : {unlockPer} : {unlockDate} : {unlockTime}")
 
         update_or_insert(fd, unlockName, unlockCode, unlockPer, unlockDate, unlockTime)
 
