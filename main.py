@@ -10,6 +10,7 @@ import pandas as pd
 from openpyxl.styles import Font, numbers
 import datetime as dt
 from datetime import datetime, date
+from selenium.webdriver.chrome.options import Options  # new line
 
 # Specify the filepath
 filepath = "C:\\Users\\mtake\\Dropbox\\アンロックデータ\\unlock.xlsx"
@@ -75,6 +76,7 @@ def update_colors(fd):
     sheet = fd['project']
     unDate_col = 4
     unVal_col = 3
+    diffDays_col = 6
 
     for row in range(2, sheet.max_row + 1):
         unDate = sheet.cell(row=row, column=unDate_col).value
@@ -89,12 +91,17 @@ def update_colors(fd):
             sheet.cell(row=row, column=unDate_col).font = Font(color="00FA9A")
         else:
             sheet.cell(row=row, column=unDate_col).font = Font(color="0000FF")
+        # Calculate difference in days and write to F column
+        sheet.cell(row=row, column=diffDays_col).value = (unDate - dt.datetime.now().date()).days
 
     fd.save(filepath)
 
 def get_project_names():
+    options = Options()  # new line
+    options.headless = True  # new line
+
     s = Service(ChromeDriverManager().install())
-    driver = webdriver.Chrome(service=s)
+    driver = webdriver.Chrome(service=s, options=options)
     driver.get('https://token.unlocks.app/')
     project_elements = driver.find_elements(By.XPATH,
                                             '//*[@id="__next"]/div[1]/div[2]/div[2]/div[3]/div[2]/table/tbody/tr')
