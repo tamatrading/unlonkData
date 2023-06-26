@@ -11,6 +11,7 @@ from openpyxl.styles import Font, numbers
 import datetime as dt
 from datetime import datetime, date
 from selenium.webdriver.chrome.options import Options  # new line
+import stockdata as sd
 
 # Specify the filepath
 filepath = "C:\\Users\\mtake\\Dropbox\\アンロックデータ\\unlock.xlsx"
@@ -89,6 +90,10 @@ def update_colors(fd):
             sheet.cell(row=row, column=unDate_col).font = Font(color="FF0000")
         elif (dt.datetime.now().date() - unDate).days == 10:
             sheet.cell(row=row, column=unDate_col).font = Font(color="00FA9A")
+            sym = sheet.cell(row=row, column=2).value
+            fday = sheet.cell(row=row, column=unDate_col).value.strftime('%Y%m%d')
+            filename = f"{sym}_{fday}.csv"
+            sd.main(f"{sym}-USD", "1y", "1h", filename)
         else:
             sheet.cell(row=row, column=unDate_col).font = Font(color="0000FF")
         # Calculate difference in days and write to F column
