@@ -75,6 +75,8 @@ def update_or_insert(fd, prj: str, unCode: str, unVal: str, unDate: str, unTime:
 
 def update_colors(fd):
     sheet = fd['project']
+    sym_col = 2
+    tim_col = 5
     unDate_col = 4
     unVal_col = 3
     diffDays_col = 6
@@ -90,9 +92,11 @@ def update_colors(fd):
             sheet.cell(row=row, column=unDate_col).font = Font(color="FF0000")
         elif (dt.datetime.now().date() - unDate).days == 10:
             sheet.cell(row=row, column=unDate_col).font = Font(color="00FA9A")
-            sym = sheet.cell(row=row, column=2).value
+            sym = sheet.cell(row=row, column=sym_col).value
             fday = sheet.cell(row=row, column=unDate_col).value.strftime('%Y%m%d')
-            filename = f"{sym}_{fday}.csv"
+            print(sheet.cell(row=row, column=tim_col).value)
+            ftim = datetime.strptime(str(sheet.cell(row=row, column=tim_col).value), "%H:%M:%S")
+            filename = f"{sym}_{fday}_{'{:02d}'.format(ftim.hour)}.csv"
             sd.main(f"{sym}-USD", "1y", "1h", filename)
         else:
             sheet.cell(row=row, column=unDate_col).font = Font(color="0000FF")
